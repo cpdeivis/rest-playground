@@ -1,4 +1,5 @@
 from flask_restful import Resource, marshal, reqparse, fields
+from app.utils import QueryChk
 from app.models import db, Author, AuthorType, ToDo
 
 
@@ -61,3 +62,26 @@ class AuthorApi(Resource):
             return '', 204
         except Exception as e:
             return {'error': str(e)}, 500
+
+
+class AuthorListApi(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        filtrable = {
+            "name": {
+                "type": str,
+                "ops": ['eq', 'lk']
+            },
+            "type": {
+                "type": EnumChk(AuthorType),
+                "ops": ['eq']
+            }
+        }
+        self.parser.add_argument('q', required=False, type=QueryChk(filtrable))
+
+    def get(self):
+        args = self.parser.parse_args()
+        return args['q']
+
+    def post(self):
+        pass

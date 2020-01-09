@@ -15,8 +15,9 @@ def create_app():
     migrate.init_app(app, db)
 
     api = Api(app)
-    from app.resources import AuthorApi
+    from app.resources import AuthorApi, AuthorListApi
     api.add_resource(AuthorApi, "/authors/<int:id>")
+    api.add_resource(AuthorListApi, '/authors')
 
     return app
 
