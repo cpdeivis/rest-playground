@@ -4,11 +4,11 @@ from app.models import db, Author, AuthorType, ToDo
 
 
 class EnumItem(fields.Raw):
-   def format(self, enum):
-      try:
-           return enum.value
-      except:
-          return None
+    def format(self, enum):
+        try:
+            return enum.value
+        except:
+            return None
 
 
 class EnumChk(object):
@@ -67,21 +67,28 @@ class AuthorApi(Resource):
 class AuthorListApi(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        filtrable = {
+        self.query = Author.query
+        searchable = {
             "name": {
                 "type": str,
-                "ops": ['eq', 'lk']
+                "ops": ['eq', 'ik'],
             },
             "type": {
                 "type": EnumChk(AuthorType),
-                "ops": ['eq']
+                "ops": ['eq'],
             }
         }
-        self.parser.add_argument('q', required=False, type=QueryChk(filtrable))
+        self.parser.add_argument('q', required=False, type=QueryChk(searchable, self.query))
+        self.fields = {
+            'id': fields.Integer,
+            'name': fields.String,
+            'type': EnumItem
+        }
 
     def get(self):
         args = self.parser.parse_args()
-        return args['q']
+        authors = self.query.all()
+        return marshal(authors, self.fields, envelope='authors')
 
     def post(self):
         pass
