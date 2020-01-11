@@ -1,5 +1,5 @@
-from flask_restful import Resource, marshal, reqparse, fields
-from .utils import QueryChk
+from .common.base import SingleR, ListR, Argument, fields
+from .common.parsers import EnumChk
 from playground.models import db, Author, AuthorType, ToDo
 
 
@@ -11,37 +11,20 @@ class EnumItem(fields.Raw):
             return None
 
 
-class EnumChk(object):
-    def __init__(self, _enum):
-        self.enum = _enum
-
-    def __call__(self, value):
-        if value not in self.enum.__members__.keys():
-            message = 'Value does not member of Enum: {0}'.format(self.enum.__name__)
-            raise ValueError(message)
-        return self.enum[value]
-
-    def __deepcopy__(self, memo):
-        return EnumChk(self.enum)
-
-
-class AuthorApi(Resource):
+class AuthorApi(SingleR):
     def __init__(self):
-        self.parser = reqparse.RequestParser()
-        self.parser.add_argument('name', type=str, required=True)
-        self.parser.add_argument('type', type=EnumChk(AuthorType))
-
-        self.fields = {
+        ps = [Argument('name', type=str, required=True), Argument('type', type=EnumChk(AuthorType))]
+        fs = {
             'id': fields.Integer,
             'name': fields.String,
             'type': EnumItem
         }
 
-        super(AuthorApi, self).__init__()
+        super(AuthorApi, self).__init__(ps, fs, 'author')
 
     def get(self, id):
         author = Author.query.get_or_404(id)
-        return marshal(author, self.fields, envelope='author')
+        return author
 
     def put(self, id):
         author = Author.query.get_or_404(id)
@@ -64,10 +47,8 @@ class AuthorApi(Resource):
             return {'error': str(e)}, 500
 
 
-class AuthorListApi(Resource):
+class AuthorListApi(ListR):
     def __init__(self):
-        self.parser = reqparse.RequestParser()
-        self.query = Author.query
         searchable = {
             "name": {
                 "type": str,
@@ -78,17 +59,17 @@ class AuthorListApi(Resource):
                 "ops": ['eq'],
             }
         }
-        self.parser.add_argument('q', required=False, type=QueryChk(searchable, self.query))
-        self.fields = {
+        fs = {
             'id': fields.Integer,
             'name': fields.String,
             'type': EnumItem
         }
+        super(AuthorListApi, self).__init__(Author.query, searchable=searchable, fs=fs, envelope='authors')
 
     def get(self):
-        args = self.parser.parse_args()
+        self.get_parser.parse_args()
         authors = self.query.all()
-        return marshal(authors, self.fields, envelope='authors')
+        return authors
 
     def post(self):
         pass

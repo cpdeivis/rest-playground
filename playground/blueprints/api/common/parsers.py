@@ -9,7 +9,7 @@ class QueryChk(object):
         self.model = model if model else query.column_descriptions[0]['type']
 
     def __call__(self, value):
-        re_query = re.compile(r'^(\[(([A-Za-z]+):([a-z]{2})=([A-Za-z0-9-]+)&?)+\])$')
+        re_query = re.compile(r'^(\[(([A-Za-z]+):([a-z]{2})=([A-Za-z0-9-]+),?)+\])$')
         re_op = re.compile(r'([A-Za-z]+:[a-z]{2}=[A-Za-z0-9-]+)')
 
         if not re_query.search(value):
@@ -48,3 +48,17 @@ class QueryChk(object):
         else:
             message = 'The field "{0}" is not searchable!'.format(op_txt[0])
             raise ValueError(message)
+
+
+class EnumChk(object):
+    def __init__(self, _enum):
+        self.enum = _enum
+
+    def __call__(self, value):
+        if value not in self.enum.__members__.keys():
+            message = 'Value does not member of Enum: {0}'.format(self.enum.__name__)
+            raise ValueError(message)
+        return self.enum[value]
+
+    def __deepcopy__(self, memo):
+        return EnumChk(self.enum)
