@@ -1,6 +1,6 @@
 from flask_restful import Resource, marshal, reqparse, fields
-from app.utils import QueryChk
-from app.models import db, Author, AuthorType, ToDo
+from .utils import QueryChk
+from playground.models import db, Author, AuthorType, ToDo
 
 
 class EnumItem(fields.Raw):

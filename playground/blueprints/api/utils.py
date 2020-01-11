@@ -1,4 +1,4 @@
-from app.operators import get_operator
+from .operators import get_operator
 import re
 
 

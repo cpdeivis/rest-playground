@@ -1,9 +1,6 @@
-from flask_sqlalchemy import SQLAlchemy
+from playground.ext.database import db
 from datetime import datetime
 import enum
-
-
-db = SQLAlchemy()
 
 
 class AuthorType(enum.Enum):
